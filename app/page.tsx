@@ -47,9 +47,9 @@ export default function Home() {
   const handleFormSubmit = () => {
     const total = selectedValues.reduce((acc, curr) => acc + curr, 0); // 合計値を計算
 
-    if (total <= 50) {
+    if (total <= 100) {
       router.push("/check/a");
-    } else if (total <= 100) {
+    } else if (total <= 200) {
       router.push("/check/b");
     } else {
       router.push("/check/c");
@@ -109,12 +109,12 @@ export default function Home() {
         <Sec04
           options={[
             { id: 1, label: "空気の乾燥", value: 10 },
-            { id: 2, label: "花粉・大気汚染", value: 30 },
-            { id: 3, label: "紫外線", value: 30 },
+            { id: 2, label: "花粉・大気汚染", value: 16 },
+            { id: 3, label: "紫外線", value: 20 },
             { id: 4, label: "ストレス", value: 30 },
-            { id: 5, label: "疲れ・睡眠不足", value: 30 },
-            { id: 6, label: "食生活", value: 30 },
-            { id: 7, label: "運動不足", value: 30 },
+            { id: 5, label: "疲れ・睡眠不足", value: 12 },
+            { id: 6, label: "食生活", value: 15 },
+            { id: 7, label: "運動不足", value: 25 },
           ]}
           onSelectionChange={handleSelection}
           onNext={() => {
@@ -124,12 +124,122 @@ export default function Home() {
         />
       ),
     },
-    { component: <Sec05 /> },
-    { component: <Sec06 /> },
-    { component: <Sec07 /> },
-    { component: <Sec08 /> },
-    { component: <Sec09 /> },
-    { component: <Sec10 /> },
+    {
+      component: (
+        <Sec05
+          options={[
+            { id: 1, label: "感じる", value: 10 },
+            { id: 2, label: "たまに感じる", value: 30 },
+            { id: 3, label: "特に感じない", value: 30 },
+          ]}
+          onSelectionChange={(value) => {
+            setSelectedValue(value); // ラジオボタンの選択値を追跡
+          }}
+          onNext={() => {
+            setCurrentSection(currentSection + 1);
+            setSelectedValue(null);
+          }}
+        />
+      ),
+    },
+    {
+      component: (
+        <Sec06
+          options={[
+            { id: 1, label: "感じる", value: 10 },
+            { id: 2, label: "部分的に感じる", value: 30 },
+            { id: 3, label: "特に感じない", value: 30 },
+          ]}
+          onSelectionChange={(value) => {
+            setSelectedValue(value); // ラジオボタンの選択値を追跡
+          }}
+          onNext={() => {
+            setCurrentSection(currentSection + 1);
+            setSelectedValue(null);
+          }}
+        />
+      ),
+    },
+    {
+      component: (
+        <Sec07
+          options={[
+            { id: 1, label: "感じる", value: 10 },
+            { id: 2, label: "やや感じる", value: 30 },
+            { id: 3, label: "特に感じない", value: 30 },
+          ]}
+          onSelectionChange={(value) => {
+            setSelectedValue(value); // ラジオボタンの選択値を追跡
+          }}
+          onNext={() => {
+            setCurrentSection(currentSection + 1);
+            setSelectedValue(null);
+          }}
+        />
+      ),
+    },
+    {
+      component: (
+        <Sec08
+          options={[
+            { id: 1, label: "感じる", value: 10 },
+            { id: 2, label: "やや感じる", value: 15 },
+            { id: 3, label: "特に感じない", value: 20 },
+          ]}
+          onSelectionChange={(value) => {
+            setSelectedValue(value); // ラジオボタンの選択値を追跡
+          }}
+          onNext={() => {
+            setCurrentSection(currentSection + 1);
+            setSelectedValue(null);
+          }}
+        />
+      ),
+    },
+    {
+      component: (
+        <Sec09
+          options={[
+            { id: 1, label: "ゆらぎやすい", value: 10 },
+            { id: 2, label: "たまにゆらぐことがある", value: 30 },
+            { id: 3, label: "あまりゆるがない", value: 30 },
+          ]}
+          onSelectionChange={(value) => {
+            setSelectedValue(value); // ラジオボタンの選択値を追跡
+          }}
+          onNext={() => {
+            setCurrentSection(currentSection + 1);
+            setSelectedValue(null);
+          }}
+        />
+      ),
+    },
+    {
+      component: (
+        <Sec10
+          options={[
+            { id: 1, label: "10代前半", value: 10 },
+            { id: 2, label: "10代後半", value: 15 },
+            { id: 3, label: "20代前半", value: 20 },
+            { id: 4, label: "20代後半", value: 25 },
+            { id: 5, label: "30代前半", value: 28 },
+            { id: 6, label: "30代後半", value: 30 },
+            { id: 7, label: "40代前半", value: 32 },
+            { id: 8, label: "40代後半", value: 34 },
+            { id: 9, label: "50代前半", value: 36 },
+            { id: 10, label: "50代後半", value: 38 },
+            { id: 11, label: "60代以上", value: 40 },
+          ]}
+          onSelectionChange={(value) => {
+            setSelectedValue(value); // ラジオボタンの選択値を追跡
+          }}
+          onNext={() => {
+            setCurrentSection(currentSection + 1);
+            setSelectedValue(null);
+          }}
+        />
+      ),
+    },
     {
       component: (
         <Sec11

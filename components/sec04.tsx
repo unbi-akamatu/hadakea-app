@@ -5,7 +5,7 @@ import React from "react";
 // props の型を定義
 type Sec04Props = {
   options: { id: number; label: string; value: number }[]; // オプション配列
-  onSelectionChange: (values: number[]) => void; // 選択変更時に配列を渡す
+  onSelectionChange: (value: number) => void; // 単一値を通知する
   onNext: () => void; // 次のセクションに進む関数
 };
 
@@ -19,13 +19,14 @@ export default function Sec04({ options, onSelectionChange }: Sec04Props) {
         return;
       }
       const newValues = [...selectedValues, value];
-      setSelectedValues(newValues);
-      onSelectionChange(newValues); // 配列全体を通知
+      setSelectedValues(newValues); // 内部状態を更新
+      onSelectionChange(value); // 単一値を通知
     } else {
       const newValues = selectedValues.filter((v) => v !== value);
-      setSelectedValues(newValues);
-      onSelectionChange(newValues); // 配列全体を通知
+      setSelectedValues(newValues); // 内部状態を更新
+      onSelectionChange(value); // 単一値を通知
     }
+    console.log("現在の選択:", selectedValues);
   };
 
   return (
@@ -42,8 +43,8 @@ export default function Sec04({ options, onSelectionChange }: Sec04Props) {
             {options.map((option) => (
               <label key={option.id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 <Checkbox
-                  checked={selectedValues.includes(option.value)} // チェック状態を管理
-                  onCheckedChange={(checked) => handleChange(option.value, checked as boolean)} // 配列全体を管理
+                  checked={selectedValues.includes(option.value)} // 選択済み状態を管理
+                  onCheckedChange={(checked) => handleChange(option.value, checked as boolean)} // 状態変更時に通知
                 />
                 <span className="pl-2">{option.label}</span>
               </label>

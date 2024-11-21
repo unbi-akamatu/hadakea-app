@@ -1,43 +1,41 @@
-import { Checkbox } from "@/components/ui/checkbox";
+"use client";
+import { RadioGroup } from "@/components/ui/radio-group";
 
-export default function Sec07() {
+// props の型を定義
+type Sec07Props = {
+  options: { id: number; label: string; value: number }[]; // オプション配列
+  onSelectionChange: (value: number) => void; // 選択変更時の関数
+  onNext: () => void; // 次のセクションに進む関数
+};
+export default function Sec07({ options, onSelectionChange }: Sec07Props) {
   return (
     <article>
       <section id="section6">
-        <h2>
+        <h2 className="p-6 text-xl">
           朝、顔が
           <br />
           べたつきますか？
         </h2>
-        {/* <p>※複数選択可（最大３個）</p> */}
-        <div className="items-top flex space-x-2">
-          <ul>
-            <li>
-              <Checkbox id="terms1" />
-              <div className="grid gap-1.5 leading-none">
-                <label htmlFor="terms1" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  ベタつく
-                </label>
-              </div>
-            </li>
-            <li>
-              <Checkbox id="terms1" />
-              <div className="grid gap-1.5 leading-none">
-                <label htmlFor="terms1" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  部分的にベタつく
-                </label>
-              </div>
-            </li>
-            <li>
-              <Checkbox id="terms1" />
-              <div className="grid gap-1.5 leading-none">
-                <label htmlFor="terms1" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  べたつきは感じない
-                </label>
-              </div>
-            </li>
-          </ul>
-        </div>
+        <RadioGroup
+          onValueChange={(value) => {
+            onSelectionChange(Number(value));
+          }}
+        >
+          <div className="grid grid-cols-2 gap-4">
+            {options.map((option) => (
+              <label key={option.id} className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  value={option.value}
+                  name="skincare02"
+                  onChange={() => onSelectionChange(option.value)} // 選択値を追跡
+                  className="radio-input"
+                />
+                <span>{option.label}</span>
+              </label>
+            ))}
+          </div>
+        </RadioGroup>
       </section>
     </article>
   );

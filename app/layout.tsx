@@ -28,9 +28,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <Head>
+      {/* <Head>
         <script src="/js/script.js" defer></script>
-      </Head>
+      </Head> */}
       <body className={cn(`${geistSans.variable} ${geistMono.variable} antialiased`, "min-h-dvh")}>
         <header className="h-16 border-b px-6 flex items-center">
           <Link href="/">LOGO</Link>
