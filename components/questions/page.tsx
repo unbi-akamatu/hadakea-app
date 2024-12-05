@@ -14,24 +14,16 @@ type QuestionProps = {
 };
 
 export default function Question({ question, onSelectionChange, defaultSelected }: QuestionProps) {
-  const [selectedValues, setSelectedValues] = useState<number[]>(defaultSelected);
+  const [selectedValues, setSelectedValues] = useState<number[]>([]);
 
   useEffect(() => {
     setSelectedValues(defaultSelected); // デフォルト選択値を反映
   }, [defaultSelected]);
 
-  const [errorMessage, setErrorMessage] = useState<string | null>(null); // 型を修正
-
   const handleCheckboxChange = (value: number, checked: boolean) => {
-    if (checked && selectedValues.length >= (question.maxSelections || Infinity)) {
-      setErrorMessage(`最大${question.maxSelections}つまで選択可能です。`);
-      return; // 選択数が上限を超えた場合、何もしない
-    }
-
     let newValues;
     if (checked) {
       newValues = [...selectedValues, value];
-      setErrorMessage(null); // エラーメッセージをクリア
     } else {
       newValues = selectedValues.filter((v) => v !== value);
     }
@@ -41,7 +33,6 @@ export default function Question({ question, onSelectionChange, defaultSelected 
 
   const handleRadioChange = (value: number) => {
     setSelectedValues([value]);
-    setErrorMessage(null); // ラジオボタンではエラーメッセージをクリア
     onSelectionChange(value); // 親コンポーネントに通知
   };
 
@@ -51,7 +42,7 @@ export default function Question({ question, onSelectionChange, defaultSelected 
       paragraph={question.paragraph} // 追加の段落を渡す
       condition={question.condition}
     >
-      {question.displayType === "checkbox" && question.options.length > 0 && (
+      {question.displayType === "checkbox" && (
         <div className="grid grid-cols-2 gap-4">
           {question.options.map((option) => (
             <label key={option.id} className="flex items-center space-x-2">
@@ -62,8 +53,13 @@ export default function Question({ question, onSelectionChange, defaultSelected 
         </div>
       )}
 
-      {question.displayType === "radio" && question.options.length > 0 && (
-        <RadioGroup value={selectedValues[0] !== undefined ? String(selectedValues[0]) : undefined} onValueChange={(value) => handleRadioChange(Number(value))} className="grid grid-cols-2 gap-4">
+      {question.displayType === "radio" && (
+        <RadioGroup
+          key={`${question.id}-${selectedValues[0] || "none"}`} // key属性で完全リセット
+          value={selectedValues[0] !== undefined ? String(selectedValues[0]) : undefined} // 初期値を適切に設定
+          onValueChange={(value) => handleRadioChange(Number(value))}
+          className="grid grid-cols-2 gap-4"
+        >
           {question.options.map((option) => (
             <label key={option.id} className="flex items-center space-x-2">
               <RadioGroupItem value={String(option.value)} />
@@ -72,11 +68,6 @@ export default function Question({ question, onSelectionChange, defaultSelected 
           ))}
         </RadioGroup>
       )}
-      {/* エラーメッセージの表示 */}
-      {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>}
     </Layout>
   );
-}
-function setErrorMessage(arg0: string) {
-  throw new Error("Function not implemented.");
 }
