@@ -136,6 +136,8 @@ export default function Home() {
                 isNextEnabled
                   ? "bg-blue-500 text-white hover:bg-blue-600" // 有効時のスタイル
                   : "bg-gray-300 text-gray-500 cursor-not-allowed" // 無効時のスタイル
+              } ${
+                currentQuestion.id === 1 ? "ml-auto" : "" // id: 1 の場合だけ右寄せ
               }`}
             >
               次へ

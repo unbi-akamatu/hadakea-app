@@ -46,7 +46,11 @@ export default function Question({ question, onSelectionChange, defaultSelected 
         <div className="grid grid-cols-2 gap-4">
           {question.options.map((option) => (
             <label key={option.id} className="flex items-center space-x-2">
-              <Checkbox checked={selectedValues.includes(option.value)} onCheckedChange={(checked) => handleCheckboxChange(option.value, checked as boolean)} />
+              <Checkbox
+                key={option.id} // 選択肢の ID をキーとして使用
+                checked={selectedValues.includes(option.value)}
+                onCheckedChange={(checked) => handleCheckboxChange(option.value, checked as boolean)}
+              />
               <span>{option.label}</span>
             </label>
           ))}
