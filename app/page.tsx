@@ -6,16 +6,22 @@ import { questionsData } from "@/components/questionsData";
 
 export default function Home() {
   // ページネーション用: 選択肢があるセクションだけを対象にする
-  const paginationQuestions = questionsData.filter((q) => q.displayType !== "none");
+  const paginationQuestions = questionsData.filter((q) => q.displayType !== "none" && q.displayType !== "form");
 
   const [currentSection, setCurrentSection] = useState(0); // 現在のセクションを管理
   const [selectedValues, setSelectedValues] = useState<number[][]>(
     Array(paginationQuestions.length).fill([]) // 選択肢があるセクションのみを対象に初期化
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null); // エラーメッセージ
+  const [userName, setUserName] = useState<string>(""); // ユーザー名
 
   // onSelectionChangeの関数を修正
-  const handleSelectionChange = (value: number | number[]) => {
+  const handleSelectionChange = (value: number | number[] | string) => {
+    if (typeof value === "string") {
+      // 名前の入力があった場合
+      setUserName(value);
+      return;
+    }
     const values = Array.isArray(value) ? value : [value]; // 必ず配列に変換
 
     // 現在のセクションが選択肢を持つ場合のみ値を更新
@@ -46,6 +52,7 @@ export default function Home() {
     // 次のセクションに進む前にエラーメッセージをリセット
     setErrorMessage(null);
     console.log("選択値:", selectedValues);
+
     if (currentSection < questionsData.length - 1) {
       setCurrentSection((prev) => prev + 1);
 
@@ -71,6 +78,21 @@ export default function Home() {
     }
   };
 
+  const handleSubmit = () => {
+    // 選択肢の合計値を計算
+    const totalScore = selectedValues.flat().reduce((sum, value) => sum + value, 0);
+
+    // 遷移先を判定
+    let destination = "/result/a"; // デフォルトは a
+    if (totalScore > 100 && totalScore <= 200) {
+      destination = "/result/b";
+    } else if (totalScore > 200) {
+      destination = "/result/c";
+    }
+    // クエリパラメータ付きのURLに遷移
+    window.location.href = `${destination}?userName=${encodeURIComponent(userName)}`;
+  };
+
   const currentQuestion = questionsData[currentSection];
 
   // 次へボタンの有効化条件
@@ -91,7 +113,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
       <div className="w-full max-w-lg bg-white shadow-md rounded-lg p-6 text-center">
         {/* ページネーション */}
-        {currentSection > 0 && (
+        {currentSection > 0 && currentQuestion.id !== 11 && (
           <div className="mt-6 flex justify-center space-x-2">
             {paginationQuestions.map((_, index) => {
               const isActive = questionsData.indexOf(paginationQuestions[index]) === currentSection; // 現在のセクションか判定
@@ -141,6 +163,11 @@ export default function Home() {
               }`}
             >
               次へ
+            </button>
+          )}
+          {currentQuestion.id === 11 && (
+            <button onClick={handleSubmit} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+              送信
             </button>
           )}
         </div>
