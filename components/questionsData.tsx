@@ -4,7 +4,7 @@ export type QuestionData = {
   condition: string;
   paragraph?: React.ReactNode; // React要素を許容
   options: { id: number; label: string; value: number }[];
-  displayType: "none" | "checkbox" | "radio";
+  displayType: "none" | "checkbox" | "radio" | "form";
   maxSelections?: number; // 追加
 };
 
@@ -152,9 +152,9 @@ export const questionsData: QuestionData[] = [
   },
   {
     id: 11,
-    title: "セクション11のタイトル",
-    condition: "セクション1の説明文です。",
+    title: "お名前を教えてください",
+    condition: "（通称名可）",
     options: [],
-    displayType: "none", // 表示なし
+    displayType: "form",
   },
 ];

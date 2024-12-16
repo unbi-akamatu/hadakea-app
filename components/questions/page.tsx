@@ -9,12 +9,13 @@ import { useState, useEffect } from "react";
 // Propsの型定義
 type QuestionProps = {
   question: QuestionData;
-  onSelectionChange: (value: number | number[]) => void;
+  onSelectionChange: (value: number | number[] | string) => void;
   defaultSelected: number[]; // セクションごとのデフォルト選択値
 };
 
 export default function Question({ question, onSelectionChange, defaultSelected }: QuestionProps) {
   const [selectedValues, setSelectedValues] = useState<number[]>([]);
+  const [userName, setUserName] = useState<string>(""); // 名前入力用
 
   useEffect(() => {
     setSelectedValues(defaultSelected); // デフォルト選択値を反映
@@ -34,6 +35,12 @@ export default function Question({ question, onSelectionChange, defaultSelected 
   const handleRadioChange = (value: number) => {
     setSelectedValues([value]);
     onSelectionChange(value); // 親コンポーネントに通知
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setUserName(value);
+    onSelectionChange(value); // 親コンポーネントに名前を渡す
   };
 
   return (
@@ -71,6 +78,14 @@ export default function Question({ question, onSelectionChange, defaultSelected 
             </label>
           ))}
         </RadioGroup>
+      )}
+      {question.displayType === "form" && (
+        <div className="mt-4">
+          <label htmlFor="username" className="block text-left text-sm font-medium text-gray-700">
+            あなたのお名前を入力してください
+          </label>
+          <input type="text" id="username" value={userName} onChange={handleNameChange} className="mt-2 block w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
+        </div>
       )}
     </Layout>
   );
