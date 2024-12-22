@@ -5,61 +5,51 @@ import Question from "@/components/questions/page";
 import { questionsData } from "@/components/questionsData";
 
 export default function Home() {
-  // ページネーション用: 選択肢があるセクションだけを対象にする
-  const paginationQuestions = questionsData.filter((q) => q.displayType !== "none" && q.displayType !== "form");
-
   const [currentSection, setCurrentSection] = useState(0); // 現在のセクションを管理
   const [selectedValues, setSelectedValues] = useState<number[][]>(
-    Array(paginationQuestions.length).fill([]) // 選択肢があるセクションのみを対象に初期化
+    Array(questionsData.length).fill([]) // 選択肢があるセクションのみを対象に初期化
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null); // エラーメッセージ
   const [userName, setUserName] = useState<string>(""); // ユーザー名
+  const finalQuestionIndex = questionsData.length; // `questionsData` の最後のセクション
+  const finalSectionIndex = finalQuestionIndex + 1; // 名前入力フォームを含む最後のセクションのインデックス
 
   // onSelectionChangeの関数を修正
-  const handleSelectionChange = (value: number | number[] | string) => {
-    if (typeof value === "string") {
-      // 名前の入力があった場合
-      setUserName(value);
-      return;
-    }
+  const handleSelectionChange = (value: number | number[]) => {
     const values = Array.isArray(value) ? value : [value]; // 必ず配列に変換
 
-    // 現在のセクションが選択肢を持つ場合のみ値を更新
-    const currentQuestion = questionsData[currentSection];
-
-    if (currentQuestion.displayType !== "none") {
+    if (currentSection > 0 && currentSection <= finalQuestionIndex) {
       setSelectedValues((prev) => {
-        // ページネーション用データ内でのインデックスを取得
-        const index = paginationQuestions.findIndex((q) => q.id === currentQuestion.id);
-
-        if (index === -1) return prev; // 該当セクションがなければ変更なし
-
         const updated = [...prev];
-        updated[index] = values; // 対応するインデックスに値を格納
+        updated[currentSection - 1] = values; // 対応するインデックスに値を格納
         return updated;
       });
     }
 
     // id: 4の場合に選択数をチェック
-    if (currentQuestion.id === 4 && values.length > 3) {
+    const currentQuestion = questionsData[currentSection - 1];
+    if (currentQuestion?.id === 3 && values.length > 3) {
       setErrorMessage("最大3つまで選択可能です。");
     } else {
       setErrorMessage(null); // エラーメッセージをリセット
     }
   };
-
+  // 名前入力フォーム用
+  const handleNameChange = (value: string) => {
+    setUserName(value);
+  };
   const goToNextSection = () => {
     // 次のセクションに進む前にエラーメッセージをリセット
     setErrorMessage(null);
     console.log("選択値:", selectedValues);
 
-    if (currentSection < questionsData.length - 1) {
+    if (currentSection <= finalSectionIndex) {
       setCurrentSection((prev) => prev + 1);
 
       // 次のセクションの選択値をリセット
       const nextQuestion = questionsData[currentSection + 1];
       if (nextQuestion.displayType !== "none") {
-        const index = paginationQuestions.findIndex((q) => q.id === nextQuestion.id);
+        const index = questionsData.findIndex((q) => q.id === nextQuestion.id);
         if (index !== -1) {
           setSelectedValues((prev) => {
             const updated = [...prev];
@@ -93,18 +83,19 @@ export default function Home() {
     window.location.href = `${destination}?userName=${encodeURIComponent(userName)}`;
   };
 
-  const currentQuestion = questionsData[currentSection];
+  const currentQuestion = currentSection > 0 && currentSection <= finalQuestionIndex ? questionsData[currentSection - 1] : null;
 
   // 次へボタンの有効化条件
   const isNextEnabled = (() => {
-    const index = paginationQuestions.findIndex((q) => q.id === currentQuestion.id);
-
-    const currentValues = index !== -1 ? selectedValues[index] : [];
-
-    if (currentQuestion.id === 4) {
-      return currentValues.length > 0 && currentValues.length <= 3;
-    } else if (currentQuestion.displayType !== "none") {
+    // if (currentSection === 0) {
+    //   return true; // 最初のセクションではボタンを常に有効化
+    // }
+    if (currentSection > 0 && currentSection <= finalQuestionIndex) {
+      const currentValues = selectedValues[currentSection - 1] || [];
       return currentValues.length > 0;
+    }
+    if (currentSection === finalSectionIndex) {
+      return userName.trim() !== ""; // 名前入力が空でない場合に有効
     }
     return true;
   })();
@@ -113,10 +104,10 @@ export default function Home() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
       <div className="w-full max-w-lg bg-white shadow-md rounded-lg p-6 text-center">
         {/* ページネーション */}
-        {currentSection > 0 && currentQuestion.id !== 11 && (
+        {currentSection !== 0 && currentSection <= finalQuestionIndex && (
           <div className="mt-6 flex justify-center space-x-2">
-            {paginationQuestions.map((_, index) => {
-              const isActive = questionsData.indexOf(paginationQuestions[index]) === currentSection; // 現在のセクションか判定
+            {questionsData.map((_, index) => {
+              const isActive = index + 1 === currentSection; // 現在のセクションか判定
               return (
                 <button
                   key={index}
@@ -133,13 +124,40 @@ export default function Home() {
             })}
           </div>
         )}
+        {/* 最初のセクション */}
+        {currentSection === 0 && (
+          <div>
+            <h1 className="text-xl font-bold mb-4">肌診断</h1>
+            <p className="mb-6">
+              <>
+                肌悩みはたくさんあるけど
+                <br />
+                成分のことは詳しくないし
+                <br />
+                どんな化粧品が自分に合うのかわからない！
+                <br />
+                そんなあなたのお気に入りを見つける
+                <br />
+                ヒントをご提案します。
+              </>
+            </p>
+            <button onClick={goToNextSection} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+              次へ
+            </button>
+          </div>
+        )}
+        {/* 質問セクション */}
+        {currentSection > 0 && currentSection <= finalQuestionIndex && (
+          <Question question={currentQuestion!} onSelectionChange={handleSelectionChange} defaultSelected={selectedValues[currentSection - 1] || []} />
+        )}
+        {/* 最後のセクション */}
+        {currentSection === finalSectionIndex && (
+          <div>
+            <h2 className="text-lg font-bold mb-4">お名前を入力してください</h2>
+            <input type="text" value={userName} onChange={(e) => handleNameChange(e.target.value)} className="w-full p-2 border rounded" placeholder="お名前" />
+          </div>
+        )}
 
-        {/* 現在のセクションを表示 */}
-        <Question
-          question={currentQuestion}
-          onSelectionChange={handleSelectionChange}
-          defaultSelected={currentQuestion.displayType !== "none" ? selectedValues[paginationQuestions.findIndex((q) => q.id === currentQuestion.id)] || [] : []} // 選択肢がある場合のみデフォルト値を渡す
-        />
         {/* エラーメッセージの表示 */}
         {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>}
 
@@ -150,7 +168,7 @@ export default function Home() {
               戻る
             </button>
           )}
-          {currentSection < questionsData.length - 1 && (
+          {currentSection > 0 && currentSection <= finalQuestionIndex && (
             <button
               onClick={goToNextSection}
               disabled={!isNextEnabled} // 有効性を管理
@@ -158,15 +176,17 @@ export default function Home() {
                 isNextEnabled
                   ? "bg-blue-500 text-white hover:bg-blue-600" // 有効時のスタイル
                   : "bg-gray-300 text-gray-500 cursor-not-allowed" // 無効時のスタイル
-              } ${
-                currentQuestion.id === 1 ? "ml-auto" : "" // id: 1 の場合だけ右寄せ
               }`}
             >
               次へ
             </button>
           )}
-          {currentQuestion.id === 11 && (
-            <button onClick={handleSubmit} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+          {currentSection === finalSectionIndex && (
+            <button
+              onClick={handleSubmit}
+              disabled={!isNextEnabled}
+              className={`px-4 py-2 rounded ${isNextEnabled ? "bg-green-500 text-white hover:bg-green-600" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
+            >
               送信
             </button>
           )}

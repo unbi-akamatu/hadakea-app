@@ -11,26 +11,6 @@ export type QuestionData = {
 export const questionsData: QuestionData[] = [
   {
     id: 1,
-    title: "肌診断",
-    condition: "",
-    paragraph: (
-      <>
-        肌悩みはたくさんあるけど
-        <br />
-        成分のことは詳しくないし
-        <br />
-        どんな化粧品が自分に合うのかわからない！
-        <br />
-        そんなあなたのお気に入りを見つける
-        <br />
-        ヒントをご提案します。
-      </>
-    ),
-    options: [],
-    displayType: "none",
-  },
-  {
-    id: 2,
     title: "普段のスキンケアアイテムを教えてください",
     condition: "※複数選択可",
     options: [
@@ -48,7 +28,7 @@ export const questionsData: QuestionData[] = [
     displayType: "checkbox",
   },
   {
-    id: 3,
+    id: 2,
     title: "一日の中で、長い時間を過ごしているのはどちらですか？",
     condition: "",
     options: [
@@ -61,7 +41,7 @@ export const questionsData: QuestionData[] = [
     displayType: "radio", // ラジオボタン表示
   },
   {
-    id: 4,
+    id: 3,
     title: "日常生活で気になる環境・習慣は何ですか？",
     condition: "※複数選択可（最大３個）",
     options: [
@@ -77,7 +57,7 @@ export const questionsData: QuestionData[] = [
     maxSelections: 3, // 最大選択数を指定
   },
   {
-    id: 5,
+    id: 4,
     title: "すっぴん肌トーンの印象が暗く感じますか？",
     condition: "",
     options: [
@@ -88,7 +68,7 @@ export const questionsData: QuestionData[] = [
     displayType: "radio", // ラジオボタン表示
   },
   {
-    id: 6,
+    id: 5,
     title: "頬に触れるとザラツキを感じますか？",
     condition: "",
     options: [
@@ -99,7 +79,7 @@ export const questionsData: QuestionData[] = [
     displayType: "radio", // ラジオボタン表示
   },
   {
-    id: 7,
+    id: 6,
     title: "朝、顔がべたつきますか？",
     condition: "",
     options: [
@@ -110,7 +90,7 @@ export const questionsData: QuestionData[] = [
     displayType: "radio", // ラジオボタン表示
   },
   {
-    id: 8,
+    id: 7,
     title: "指で顔全体を押すとふっくら弾力を感じますか？",
     condition: "",
     options: [
@@ -121,7 +101,7 @@ export const questionsData: QuestionData[] = [
     displayType: "radio", // ラジオボタン表示
   },
   {
-    id: 9,
+    id: 8,
     title: "肌に赤みが出やすくゆらぎやすいですか？",
     condition: "",
     options: [
@@ -132,7 +112,7 @@ export const questionsData: QuestionData[] = [
     displayType: "radio", // ラジオボタン表示
   },
   {
-    id: 10,
+    id: 9,
     title: "年齢を教えてください",
     condition: "",
     options: [
@@ -149,12 +129,5 @@ export const questionsData: QuestionData[] = [
       { id: 11, label: "60代以上", value: 40 },
     ],
     displayType: "radio", // ラジオボタン表示
-  },
-  {
-    id: 11,
-    title: "お名前を教えてください",
-    condition: "（通称名可）",
-    options: [],
-    displayType: "form",
   },
 ];
