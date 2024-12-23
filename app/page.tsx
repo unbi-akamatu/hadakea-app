@@ -3,6 +3,11 @@
 import { useState } from "react";
 import Question from "@/components/questions/page";
 import { questionsData } from "@/components/questionsData";
+import { useForm, SubmitHandler } from "react-hook-form";
+
+type Inputs = {
+  userName: string;
+};
 
 export default function Home() {
   const [currentSection, setCurrentSection] = useState(0); // 現在のセクションを管理
@@ -10,7 +15,7 @@ export default function Home() {
     Array(questionsData.length).fill([]) // 選択肢があるセクションのみを対象に初期化
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null); // エラーメッセージ
-  const [userName, setUserName] = useState<string>(""); // ユーザー名
+
   const finalQuestionIndex = questionsData.length; // `questionsData` の最後のセクション
   const finalSectionIndex = finalQuestionIndex + 1; // 名前入力フォームを含む最後のセクションのインデックス
 
@@ -34,10 +39,7 @@ export default function Home() {
       setErrorMessage(null); // エラーメッセージをリセット
     }
   };
-  // 名前入力フォーム用
-  const handleNameChange = (value: string) => {
-    setUserName(value);
-  };
+
   const goToNextSection = () => {
     // 次のセクションに進む前にエラーメッセージをリセット
     setErrorMessage(null);
@@ -67,36 +69,35 @@ export default function Home() {
       setCurrentSection((prev) => prev - 1);
     }
   };
+  // React Hook Form の初期化
+  const { register, handleSubmit, formState } = useForm<Inputs>({
+    defaultValues: { userName: "" },
+  });
+  const { isValid } = formState; // フォームのバリデーション状態を取得
 
-  const handleSubmit = () => {
-    // 選択肢の合計値を計算
+  //名前入力フォームの送信処理
+  const onSubmit: SubmitHandler<Inputs> = (data) => {
     const totalScore = selectedValues.flat().reduce((sum, value) => sum + value, 0);
 
-    // 遷移先を判定
     let destination = "/result/a"; // デフォルトは a
     if (totalScore > 100 && totalScore <= 200) {
       destination = "/result/b";
     } else if (totalScore > 200) {
       destination = "/result/c";
     }
-    // クエリパラメータ付きのURLに遷移
-    window.location.href = `${destination}?userName=${encodeURIComponent(userName)}`;
+
+    window.location.href = `${destination}?userName=${encodeURIComponent(data.userName)}`;
   };
 
   const currentQuestion = currentSection > 0 && currentSection <= finalQuestionIndex ? questionsData[currentSection - 1] : null;
 
   // 次へボタンの有効化条件
   const isNextEnabled = (() => {
-    // if (currentSection === 0) {
-    //   return true; // 最初のセクションではボタンを常に有効化
-    // }
     if (currentSection > 0 && currentSection <= finalQuestionIndex) {
       const currentValues = selectedValues[currentSection - 1] || [];
       return currentValues.length > 0;
     }
-    if (currentSection === finalSectionIndex) {
-      return userName.trim() !== ""; // 名前入力が空でない場合に有効
-    }
+    if (currentSection === finalSectionIndex) return isValid;
     return true;
   })();
 
@@ -152,10 +153,14 @@ export default function Home() {
         )}
         {/* 最後のセクション */}
         {currentSection === finalSectionIndex && (
-          <div>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <h2 className="text-lg font-bold mb-4">お名前を入力してください</h2>
-            <input type="text" value={userName} onChange={(e) => handleNameChange(e.target.value)} className="w-full p-2 border rounded" placeholder="お名前" />
-          </div>
+            <input type="text" {...register("userName", { required: "お名前を入力してください" })} className="w-full p-2 border rounded" placeholder="お名前" />
+
+            <button type="submit" className={`px-4 py-2 mt-4 rounded ${isValid ? "bg-green-500 text-white hover:bg-green-600" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`} disabled={!isValid}>
+              送信
+            </button>
+          </form>
         )}
 
         {/* エラーメッセージの表示 */}
@@ -179,15 +184,6 @@ export default function Home() {
               }`}
             >
               次へ
-            </button>
-          )}
-          {currentSection === finalSectionIndex && (
-            <button
-              onClick={handleSubmit}
-              disabled={!isNextEnabled}
-              className={`px-4 py-2 rounded ${isNextEnabled ? "bg-green-500 text-white hover:bg-green-600" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
-            >
-              送信
             </button>
           )}
         </div>
