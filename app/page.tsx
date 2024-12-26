@@ -1,192 +1,86 @@
 "use client";
 
-import { useState } from "react";
-import Question from "@/components/questions/page";
+import { useState, useEffect } from "react";
+import FirstPage from "@/components/firstPage";
+import QuestionPage from "@/components/questionPage";
+import FormPage from "@/components/formPage";
 import { questionsData } from "@/components/questionsData";
-import { useForm, SubmitHandler } from "react-hook-form";
-
-type Inputs = {
-  userName: string;
-};
 
 export default function Home() {
   const [currentSection, setCurrentSection] = useState(0); // 現在のセクションを管理
   const [selectedValues, setSelectedValues] = useState<number[][]>(
-    Array(questionsData.length).fill([]) // 選択肢があるセクションのみを対象に初期化
+    Array(questionsData.length).fill([]) // SSR と一致する初期値
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null); // エラーメッセージ
+  const [isClient, setIsClient] = useState(false); // クライアントレンダリングのフラグ
 
-  const finalQuestionIndex = questionsData.length; // `questionsData` の最後のセクション
-  const finalSectionIndex = finalQuestionIndex + 1; // 名前入力フォームを含む最後のセクションのインデックス
+  useEffect(() => {
+    setIsClient(true); // クライアントサイドで有効化
+  }, []);
 
-  // onSelectionChangeの関数を修正
-  const handleSelectionChange = (value: number | number[]) => {
-    const values = Array.isArray(value) ? value : [value]; // 必ず配列に変換
+  if (!isClient) {
+    return null; // サーバーとクライアントでの不一致を防止
+  }
 
-    if (currentSection > 0 && currentSection <= finalQuestionIndex) {
-      setSelectedValues((prev) => {
-        const updated = [...prev];
-        updated[currentSection - 1] = values; // 対応するインデックスに値を格納
-        return updated;
-      });
-    }
+  const finalSectionIndex = questionsData.length + 1; // 名前入力フォームを含む最後のセクションのインデックス
 
-    // id: 4の場合に選択数をチェック
-    const currentQuestion = questionsData[currentSection - 1];
-    if (currentQuestion?.id === 3 && values.length > 3) {
-      setErrorMessage("最大3つまで選択可能です。");
-    } else {
-      setErrorMessage(null); // エラーメッセージをリセット
-    }
-  };
-
+  // ページ遷移ロジック
   const goToNextSection = () => {
-    // 次のセクションに進む前にエラーメッセージをリセット
     setErrorMessage(null);
-    console.log("選択値:", selectedValues);
-
-    if (currentSection <= finalSectionIndex) {
+    if (currentSection < finalSectionIndex) {
       setCurrentSection((prev) => prev + 1);
-
-      // 次のセクションの選択値をリセット
-      const nextQuestion = questionsData[currentSection + 1];
-      if (nextQuestion.displayType !== "none") {
-        const index = questionsData.findIndex((q) => q.id === nextQuestion.id);
-        if (index !== -1) {
-          setSelectedValues((prev) => {
-            const updated = [...prev];
-            updated[index] = []; // 次のセクションの選択をリセット
-            return updated;
-          });
-        }
-      }
     }
   };
 
   const goToPreviousSection = () => {
     if (currentSection > 0) {
-      setErrorMessage(null); // エラーメッセージをクリア
+      setErrorMessage(null);
       setCurrentSection((prev) => prev - 1);
     }
   };
-  // React Hook Form の初期化
-  const { register, handleSubmit, formState } = useForm<Inputs>({
-    defaultValues: { userName: "" },
-  });
-  const { isValid } = formState; // フォームのバリデーション状態を取得
 
-  //名前入力フォームの送信処理
-  const onSubmit: SubmitHandler<Inputs> = (data) => {
-    const totalScore = selectedValues.flat().reduce((sum, value) => sum + value, 0);
+  // 質問の選択状態を更新
+  const handleSelectionChange = (sectionIndex: number, value: number | number[], isChecked?: boolean) => {
+    setSelectedValues((prev) => {
+      const updated = [...prev];
+      const currentValues = updated[sectionIndex] || [];
 
-    let destination = "/result/a"; // デフォルトは a
-    if (totalScore > 100 && totalScore <= 200) {
-      destination = "/result/b";
-    } else if (totalScore > 200) {
-      destination = "/result/c";
-    }
-
-    window.location.href = `${destination}?userName=${encodeURIComponent(data.userName)}`;
+      if (questionsData[sectionIndex]?.displayType === "radio") {
+        updated[sectionIndex] = Array.isArray(value) ? value : [value];
+      } else if (questionsData[sectionIndex]?.displayType === "checkbox") {
+        if (Array.isArray(value)) {
+          console.error("Checkboxの選択で不正な値が渡されました", value);
+          return prev; // 不正な値の場合、状態を更新しない
+        }
+        if (isChecked) {
+          updated[sectionIndex] = [...currentValues, value];
+        } else {
+          updated[sectionIndex] = currentValues.filter((v) => v !== value);
+        }
+      }
+      return updated;
+    });
+    console.log("Component re-rendered");
   };
-
-  const currentQuestion = currentSection > 0 && currentSection <= finalQuestionIndex ? questionsData[currentSection - 1] : null;
-
-  // 次へボタンの有効化条件
-  const isNextEnabled = (() => {
-    if (currentSection > 0 && currentSection <= finalQuestionIndex) {
-      const currentValues = selectedValues[currentSection - 1] || [];
-      return currentValues.length > 0;
-    }
-    if (currentSection === finalSectionIndex) return isValid;
-    return true;
-  })();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
       <div className="w-full max-w-lg bg-white shadow-md rounded-lg p-6 text-center">
-        {/* ページネーション */}
-        {currentSection !== 0 && currentSection <= finalQuestionIndex && (
-          <div className="mt-6 flex justify-center space-x-2">
-            {questionsData.map((_, index) => {
-              const isActive = index + 1 === currentSection; // 現在のセクションか判定
-              return (
-                <button
-                  key={index}
-                  disabled // 全てのボタンを無効化
-                  className={`w-8 h-8 rounded-full ${
-                    isActive
-                      ? "bg-blue-500 text-white cursor-not-allowed" // 現在のページ
-                      : "bg-gray-300 text-black cursor-not-allowed" // 他のページ
-                  }`}
-                >
-                  {index + 1}
-                </button>
-              );
-            })}
-          </div>
+        {currentSection === 0 && <FirstPage onNext={goToNextSection} />}
+        {currentSection > 0 && currentSection <= questionsData.length && (
+          <QuestionPage
+            question={questionsData[currentSection - 1]}
+            sectionIndex={currentSection - 1}
+            selectedValues={selectedValues[currentSection - 1] || []}
+            onSelectionChange={handleSelectionChange}
+            errorMessage={errorMessage}
+            onNext={goToNextSection}
+            onPrevious={goToPreviousSection}
+            onJumpToSection={(sectionIndex) => setCurrentSection(sectionIndex + 1)} // ページネーション
+            totalSections={questionsData.length}
+          />
         )}
-        {/* 最初のセクション */}
-        {currentSection === 0 && (
-          <div>
-            <h1 className="text-xl font-bold mb-4">肌診断</h1>
-            <p className="mb-6">
-              <>
-                肌悩みはたくさんあるけど
-                <br />
-                成分のことは詳しくないし
-                <br />
-                どんな化粧品が自分に合うのかわからない！
-                <br />
-                そんなあなたのお気に入りを見つける
-                <br />
-                ヒントをご提案します。
-              </>
-            </p>
-            <button onClick={goToNextSection} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-              次へ
-            </button>
-          </div>
-        )}
-        {/* 質問セクション */}
-        {currentSection > 0 && currentSection <= finalQuestionIndex && (
-          <Question question={currentQuestion!} onSelectionChange={handleSelectionChange} defaultSelected={selectedValues[currentSection - 1] || []} />
-        )}
-        {/* 最後のセクション */}
-        {currentSection === finalSectionIndex && (
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <h2 className="text-lg font-bold mb-4">お名前を入力してください</h2>
-            <input type="text" {...register("userName", { required: "お名前を入力してください" })} className="w-full p-2 border rounded" placeholder="お名前" />
-
-            <button type="submit" className={`px-4 py-2 mt-4 rounded ${isValid ? "bg-green-500 text-white hover:bg-green-600" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`} disabled={!isValid}>
-              送信
-            </button>
-          </form>
-        )}
-
-        {/* エラーメッセージの表示 */}
-        {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>}
-
-        {/* 次へ/戻るボタン */}
-        <div className="mt-6 flex justify-between">
-          {currentSection > 0 && (
-            <button onClick={goToPreviousSection} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-              戻る
-            </button>
-          )}
-          {currentSection > 0 && currentSection <= finalQuestionIndex && (
-            <button
-              onClick={goToNextSection}
-              disabled={!isNextEnabled} // 有効性を管理
-              className={`px-4 py-2 bg-blue-500 rounded ${
-                isNextEnabled
-                  ? "bg-blue-500 text-white hover:bg-blue-600" // 有効時のスタイル
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed" // 無効時のスタイル
-              }`}
-            >
-              次へ
-            </button>
-          )}
-        </div>
+        {currentSection === finalSectionIndex && <FormPage selectedValues={selectedValues} onPrevious={goToPreviousSection} />}
       </div>
     </div>
   );
