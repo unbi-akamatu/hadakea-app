@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, memo } from "react";
 import Layout from "@/components/layout";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -14,69 +14,41 @@ type QuestionPageProps = {
   errorMessage: string | null;
   onNext: () => void;
   onPrevious: () => void;
-  onJumpToSection: (sectionIndex: number) => void; // ページネーション用コールバック
-  totalSections: number; // 全セクション数
+  onJumpToSection: (sectionIndex: number) => void;
+  totalSections: number;
 };
+
+const PaginationButton = memo(({ index, isActive, onClick }: { index: number; isActive: boolean; onClick: () => void }) => (
+  <button onClick={onClick} className={`w-8 h-8 rounded-full ${isActive ? "bg-blue-500 text-white" : "bg-gray-300 text-black hover:bg-gray-400"}`}>
+    {index + 1}
+  </button>
+));
 
 export default function QuestionPage({ question, sectionIndex, selectedValues, onSelectionChange, errorMessage, onNext, onPrevious, onJumpToSection, totalSections }: QuestionPageProps) {
   const [localErrorMessage, setLocalErrorMessage] = useState<string | null>(null);
-  const isNextEnabled = selectedValues.length > 0;
+
+  useEffect(() => {
+    setLocalErrorMessage(null); // セクション変更時にエラーメッセージをリセット
+  }, [sectionIndex]);
 
   const handleCheckboxChange = (value: number, isChecked: boolean) => {
-    if (question.id === 3) {
-      if (isChecked && selectedValues.length >= 3) {
-        setLocalErrorMessage("最大3つまで選択可能です。");
-        return; // 3つを超える選択は無視
-      }
+    if (question.id === 3 && isChecked && selectedValues.length >= 3) {
+      setLocalErrorMessage("最大3つまで選択可能です。");
+      return;
     }
-    setLocalErrorMessage(null); // エラーメッセージをリセット
+    setLocalErrorMessage(null);
     onSelectionChange(sectionIndex, value, isChecked);
   };
 
-  // 「次へ」ボタンを押した時の処理
-  const handleNext = () => {
-    setLocalErrorMessage(null); // エラーメッセージをリセット
-    onNext();
-  };
-
-  // 「戻る」ボタンを押した時の処理
-  const handlePrevious = () => {
-    setLocalErrorMessage(null); // エラーメッセージをリセット
-    onPrevious();
-  };
-
-  console.log("Rendering QuestionPage", {
-    selectedValues,
-  });
   return (
     <div>
-      {/* ページネーション */}
       <div className="mt-6 flex justify-center space-x-2">
-        {Array.from({ length: totalSections }, (_, index) => {
-          const isActive = index === sectionIndex; // 現在のセクションか判定
-          return (
-            <button
-              key={index}
-              onClick={() => {
-                setLocalErrorMessage(null); // ページジャンプ時もリセット
-                onJumpToSection(index);
-              }} // セクションジャンプ
-              className={`w-8 h-8 rounded-full ${
-                isActive
-                  ? "bg-blue-500 text-white" // 現在のページ
-                  : "bg-gray-300 text-black hover:bg-gray-400"
-              }`}
-            >
-              {index + 1}
-            </button>
-          );
-        })}
+        {Array.from({ length: totalSections }, (_, index) => (
+          <PaginationButton key={index} index={index} isActive={index === sectionIndex} onClick={() => onJumpToSection(index)} />
+        ))}
       </div>
-      <Layout
-        title={question.title}
-        paragraph={question.paragraph} // 追加の段落を渡す
-        condition={question.condition}
-      >
+
+      <Layout title={question.title} paragraph={question.paragraph} condition={question.condition}>
         {question.displayType === "checkbox" && (
           <div className="grid grid-cols-2 gap-4">
             {question.options.map((option) => (
@@ -103,19 +75,17 @@ export default function QuestionPage({ question, sectionIndex, selectedValues, o
           </RadioGroup>
         )}
 
-        {/* エラーメッセージ */}
         {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>}
         {localErrorMessage && <p className="text-red-500 mt-4">{localErrorMessage}</p>}
 
-        {/* 次へ / 戻るボタン */}
         <div className="mt-6 flex justify-between">
           <button onClick={onPrevious} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
             戻る
           </button>
           <button
-            onClick={handleNext}
-            disabled={!isNextEnabled}
-            className={`px-4 py-2 rounded ${isNextEnabled ? "bg-blue-500 text-white hover:bg-blue-600" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
+            onClick={onNext}
+            disabled={selectedValues.length === 0}
+            className={`px-4 py-2 rounded ${selectedValues.length > 0 ? "bg-blue-500 text-white hover:bg-blue-600" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
           >
             次へ
           </button>

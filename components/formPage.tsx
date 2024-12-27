@@ -18,13 +18,7 @@ export default function formPage({ selectedValues, onPrevious }: formPageProps) 
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     const totalScore = selectedValues.flat().reduce((sum, value) => sum + value, 0);
-    let destination = "/result/a";
-
-    if (totalScore > 100 && totalScore <= 200) {
-      destination = "/result/b";
-    } else if (totalScore > 200) {
-      destination = "/result/c";
-    }
+    const destination = totalScore > 200 ? "/result/c" : totalScore > 100 ? "/result/b" : "/result/a";
 
     window.location.href = `${destination}?userName=${encodeURIComponent(data.userName)}`;
   };
